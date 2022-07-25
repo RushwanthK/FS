@@ -1,0 +1,612 @@
+P1]
+
+#include<iostream>
+#include<stdio.h>
+#include<cstdio>
+#include<fstream>
+#include<iomanip>
+#include<stdlib.h>
+using namespace std;
+
+
+void reverse(char *s,char *r)
+{
+	int j,len=0;
+	while(s[len]!='\0')
+		len++;
+	for(j=len-1;j>=0;j--)
+		r[len-j-1]=s[j];
+	r[len]='\0';
+}
+
+
+int main()
+{
+	char name[10][20],rev[10][20],input[20],output[20],str[20],rstr[20];
+	int i,n,len;
+	fstream ifile,ofile;
+	//curscr;
+	cout<<"enter the number of names to read "<<endl;
+	cin>>n;
+	cout<<"enter the names"<<endl;
+	for(i=0;i<n;i++)
+	{
+		scanf("%s",name[i]);
+	}
+	for(i=0;i<n;i++)
+	{
+		reverse(name[i],rev[i]);
+	}
+	cout<<"the names and its reverese order are"<<endl;
+	for(i=0;i<n;i++)
+		cout<<name[i]<<setw(25)<<rev[i]<<endl;
+	cout<<"enter the filename which contain list of names"<<endl;
+	cin>>input;
+	ifile.open(input,ios::in);
+	if(!ifile)
+	{
+		cout<<"file doesnot exist";
+		//getch();
+		exit(1);
+	}
+	cout<<"enter the filename to store names in reverse order"<<endl;
+	cin>>output;
+	ofile.open(output,ios::out);
+	if(!ofile)
+	{
+		cout<<"file doesnot exit";
+		//getch();
+		exit(1);
+	}
+	while(!ifile.eof())
+	{
+		ifile.getline(str,20,'\n');
+		reverse(str,rstr);
+		ofile<<rstr<<endl;
+	}
+	ifile.close();
+	ofile.close();
+	return 0;
+}
+
+
+P4]
+
+#include<iostream>
+#include<fstream>
+//#include<curses.h>
+#include<stdio.h>
+#include<iomanip>
+#include<stdlib.h>
+#include<string.h>
+using namespace std;
+#define filename "std4.txt"
+fstream ifile;
+
+class student
+{
+	char usn[15],name[20],age[5],branch[6],sem[5];
+	public:
+	void opener(fstream &ifile, char *fn , ios_base::openmode mode);
+	void read();
+	void pack();
+	void display();
+	void unpack();
+	int search();
+};
+void student::opener(fstream &sfile, char *fn , ios_base::openmode mode)
+{
+	sfile.open(fn,mode);
+	if(!sfile)
+	{
+		cout<<"unable to open a file"<<endl;
+		//getch();
+		exit(1);
+	}
+}
+
+
+void student::read()
+{
+	cout<<"enter the usn number:";
+	scanf("%s",usn);
+	cout<<"enter the name:";
+	scanf("%s",name);
+	cout<<"enter the age:";
+	scanf("%s",age);
+	cout<<"enter the branch:";
+	scanf("%s",branch);
+	cout<<"enter the sem:";
+	scanf("%s",sem);
+	pack();
+}
+
+
+void student::pack()
+{
+	char buffer[75];
+	strcpy(buffer,usn);
+	strcat(buffer,"|");
+	strcat(buffer,name);
+	strcat(buffer,"|");
+	strcat(buffer,age);
+	strcat(buffer,"|");
+	strcat(buffer,branch);
+	strcat(buffer,"|");
+	strcat(buffer,sem);
+	strcat(buffer,"|");
+	ifile<<buffer<<"#";
+}
+
+
+void student::display()
+{
+	int count=0;
+	cout<<setiosflags(ios::left);
+	cout<<setw(5)<<"RRN"<<setw(15)<<"USN"<<setw(20)<<"NAME"<<setw(5);
+	cout<<"AGE"<<setw(10)<<"BRANCH"<<setw(5)<<"SEM"<<endl;
+	while(1)
+	{
+		ifile.getline(usn,15,'|');
+		if(ifile.eof())
+			break;
+		unpack();
+		count++;
+		if(usn[0]!='$')
+		{
+		cout<<setw(5)<<count<<setw(15)<<usn<<setw(20)<<name<<setw(5)<<age;
+		cout<<setw(10)<<branch<<setw(5)<<sem<<endl;
+		}
+	}
+}
+
+
+void student::unpack()
+{
+	char dummy[75];
+	ifile.getline(name,20,'|');
+	ifile.getline(age,5,'|');
+	ifile.getline(branch,6,'|');
+	ifile.getline(sem,5,'|');
+	ifile.getline(dummy,75,'#');
+}
+
+
+int student::search()
+{
+	int rrn,count=0;
+	char dummy[75];
+	cout<<"enter the rrn to be searched:";
+	cin>>rrn;
+	cout<<"RRN:"<<rrn;
+	while(1)
+	{
+		ifile.getline(usn,15,'|');
+		if(ifile.eof())
+			break;
+		count++;
+		if(rrn==count)
+		{
+			cout<<"\nRecord found\n";
+			unpack();
+			cout<<"USN:"<<usn<<"\n"<<"NAME:"<<name<<"\n"<<"AGE:"<<age;
+			cout<<"\n"<<"BRANCH:"<<branch<<"\n"<<"SEM:"<<sem<<"\n";
+			return 1;
+		}
+		else
+			ifile.getline(dummy,100,'#');
+	}
+	return -1;
+}
+
+
+int main()
+{
+	int ch,pos;
+	student s;
+	//curscr;
+	for(;;)
+	{
+		cout<<endl<<"1.for read\t2.for display\t3.for search\t4.for exit\n";
+		cout<<"Enter the choice:";
+		cin>>ch;
+		switch(ch)
+		{
+			case 1: s.opener(ifile,filename,ios::app);
+				cout<<"enter the student details\n";
+				s.read();
+			break;
+			case 2: s.opener(ifile,filename,ios::in);
+				cout<<"The student details are:"<<endl;
+				s.display();
+			break;
+			case 3:s.opener(ifile,filename,ios::in);
+				cout<<"To search record based on Relative record number(RRN) \n";
+				pos=s.search();
+				if(pos==-1)
+					cout<<"\nRRN number is out of range-Record not found\n";
+			break;
+			default:exit(0);
+		}
+		ifile.close();
+	}
+	return 0;
+}
+
+
+
+P5]
+
+#include<iostream>
+#include<fstream>
+#include<stdio.h>
+#include<iomanip>
+#include<stdlib.h>
+#include<string.h>
+using namespace std;
+
+#define max 10
+#define datafile "student5.txt"
+#define indexfile "index5.txt"
+fstream stdfile, indfile;
+int i,indsize;
+char buffer[80];
+
+
+class Student
+{
+	char dusn[15],name[20],age[5],branch[5],sem[5];
+	public:
+	void read();
+	void pack();
+	friend int search(char*);
+	void recDisp(int);
+	void remove(int);
+	void dataDisp();
+	void unpack();
+};
+
+class index
+{
+	public:
+	char iusn[15],addr[5];
+	void initial();
+	void write();
+}in,id[max];
+
+
+void index::initial()
+{
+	indfile.open(indexfile,ios::in);
+	if(!indfile)
+	{
+		indsize=0;
+		return;
+	}
+	for(indsize=0;;indsize++)
+	{
+		indfile.getline(id[indsize].iusn,15,'|');
+		indfile.getline(id[indsize].addr,5,'\n');
+		if(indfile.eof())
+			break;
+	}
+	indfile.close();
+}
+
+
+void opener(fstream &sfile,char* fn,ios_base::openmode mode)
+{
+	sfile.open(fn,mode);
+	if(!sfile)
+	{
+		cout<<"Unable to open the file\n";
+		exit(1);
+	}
+}
+
+
+void index::write()
+{
+	opener(indfile,indexfile,ios::out);
+	for(i=0;i<indsize;i++)
+		indfile<<id[i].iusn<<"|"<<id[i].addr<<"\n";
+	indfile.close();
+}
+
+
+int search(char* fusn)
+{
+	int low=0,high=indsize-1;
+	int mid;
+	while(low<=high)
+	{
+		mid=(low+high)/2;
+		if(strcmp(fusn,id[mid].iusn)==0)
+			return mid;
+		else if(strcmp(fusn,id[mid].iusn)>0)
+			low=mid+1;
+		else
+			high=mid-1;
+	}
+	return -1;
+}
+
+
+void Student::read()
+{
+	cout<<"Enter the usn no.\n";
+	scanf("%s",dusn);
+	if(search(dusn)>=0)
+	{
+		cout<<"usn is already present,we can't add to index file\n";
+		return;
+	}
+	for(i=indsize;i>0;i--)
+	{
+		if(strcmp(dusn,id[i-1].iusn)<0)
+			id[i]=id[i-1];
+		else
+			break;
+	}
+	opener(stdfile,datafile,ios::app);
+	cout<<"Enter the Name\n";
+	scanf("%s",name);
+	cout<<"Enter the age\n";
+	scanf("%s",age);
+	cout<<"Enter the branch\n";
+	scanf("%s",branch);
+	cout<<"Enter the semester\n";
+	scanf("%s",sem);
+	pack();
+	stdfile.seekg(0,ios::end);
+	int k=stdfile.tellg();
+	stdfile<<buffer<<endl;
+	strcpy(id[i].iusn,dusn);
+	sprintf(id[i].addr,"%d",k);
+	indsize++;
+}
+
+
+void Student::pack()
+{
+	strcpy(buffer,dusn); strcat(buffer,"|");
+	strcat(buffer,name); strcat(buffer,"|");
+	strcat(buffer,age); strcat(buffer,"|");
+	strcat(buffer,branch); strcat(buffer,"|");
+	strcat(buffer,sem); strcat(buffer,"|");
+}
+
+
+void Student::recDisp(int pos)
+{
+	opener(stdfile,datafile,ios::in);
+	stdfile.seekg(atoi(id[pos].addr),ios::beg);
+	cout<<"The searched record details are:\n";
+	cout<<setw(16)<<"USN"<<setw(16)<<"Name"<<setw(16)<<"Age"<<setw(16)<<"Branch"<<setw(16)<<"Sem"<<endl;
+	unpack();
+}
+
+
+void Student::remove(int pos)
+{
+	opener(stdfile,datafile,ios::in|ios::out);
+	stdfile.seekg(atoi(id[pos].addr),ios::beg);
+	stdfile.put('$');
+	for(i=pos;i<indsize;i++)
+		id[i]=id[i+1];
+	indsize--;
+}
+
+
+void Student::dataDisp()
+{
+	cout<<setiosflags(ios::left);
+	cout<<setw(16)<<"USN"<<setw(16)<<"Name"<<setw(16)<<"Age"<<setw(16)<<"Branch"<<setw(16)<<"Sem"<<endl;
+	while(1)
+	{
+		unpack();
+		if(stdfile.eof())
+			break;
+	}
+}
+
+
+void Student::unpack()
+{
+	stdfile.getline(buffer,100,'\n');
+	i=0;
+	if(buffer[i]!='$')
+	{
+		cout<<"\n";
+		while(buffer[i]!='\0')
+		{
+			if(buffer[i]=='|')
+				cout<<"\t\t";
+			else
+				cout<<buffer[i];
+			i++;
+		}
+	}
+}
+int main()
+{
+	int ch,pos,flag;
+	char susn[15];
+	Student S;
+	in.initial();
+	for(;;)
+	{
+		cout<<endl<<"1.Read\n2.Display\n3.Search\n4.Delete\n5.exit\n";
+		cin>>ch;
+		switch(ch)
+		{
+			case 1: cout<<"Enter student details\n";
+				S.read();
+				in.write();
+			break;
+			case 2: opener(stdfile,datafile,ios::in);
+				cout<<endl<<"Student Details\n";
+				S.dataDisp();
+				cout<<endl<<"Index file details are:\n";
+				cout<<setw(10)<<"USN"<<setw(10)<<"Address";
+				for(i=0;i<indsize;i++)
+				{
+					cout<<endl<<setw(10)<<id[i].iusn<<setw(10)<<id[i].addr<<endl;
+				}
+			break;
+			case 3: cout<<"Enter the USN to be searched\n";
+				cin>>susn;
+				flag=search(susn);
+				if(flag==-1)
+					cout<<"Record Not found\n";
+				else
+					S.recDisp(flag);
+			break;
+			case 4: cout<<"Enter the usn no to delete from the record\n";
+				cin>>susn;
+				pos=search(susn);
+				if(pos==-1)
+					cout<<"Usn No. not found\n";
+				else
+				{
+					S.remove(pos);
+					in.write();
+				}
+			break;
+			default: exit(0);
+		}
+		stdfile.close();
+	}
+	return 0;
+}
+
+
+
+P7]
+
+#include<stdio.h>
+#include<iostream>
+#include<stdlib.h>
+#include<fstream>
+#include<string.h>
+using namespace std;
+
+
+void opener(fstream &file, char *fn,ios_base::openmode mode)
+{
+	file.open(fn,mode);
+	if(!file)
+	{
+		cout<<"unable to open the file \n ";
+		//getch();
+		exit(1);
+	}
+}
+
+
+void match(fstream &file1 ,fstream &file2 ,fstream &ofile)
+{
+	char s1[25] ,s2[25];
+	file1.getline(s1,25,'\n');
+	file2.getline(s2,25,'\n');
+	while(!file1.eof() && !file2.eof())
+	{
+		if(strcmp(s1,s2)== 0)
+		{
+			ofile<<s1<<"\n";
+			cout<<s1<<endl;
+			file1.getline(s1,25,'\n');
+			file2.getline(s2,25,'\n');
+		}
+		else if(strcmp(s1,s2)<0)
+			file2.getline(s2,25,'\n');
+		else
+			file1.getline(s1,25,'\n');
+	}
+}
+
+
+int main()
+{
+	fstream list1,list2,outlist;
+	opener(list1,"name1.txt",ios::in);
+	opener(list2,"name2.txt",ios::in);
+	opener(outlist,"names.txt",ios::out);
+	match(list1,list2,outlist);
+	cout<<"name1.txt & name2.txt matching names in names.txt\n";
+	list1.close();
+	list2.close();
+	outlist.close();
+	return 0;
+}
+
+
+
+P8]
+
+#include<stdio.h>
+#include<iostream>
+#include<fstream>
+#include<stdlib.h>
+#include<string.h>
+#define k 8
+using namespace std;
+
+
+void opener(fstream &file, char *fn, ios_base::openmode mode)
+{
+	file.open(fn,mode);
+	if(!file)
+	{
+		cout<<"unable to open the file \n";
+		exit(1);
+	}
+}
+
+
+int main()
+{
+	fstream list[8], outfile;
+	char name[8][20]={"name0.txt","name1.txt","name2.txt","name3.txt","name4.txt","name5.txt","name6.txt","name7.txt"};
+	char item[8][20],min[20]="";
+	int i,count=0;
+	for(i=0;i<k;i++)
+		opener(list[i],name[i],ios::in);
+	opener(outfile,"merge8.txt",ios::out);
+	for(i=0;i<k;i++)
+	{
+		list[i].getline(item[i],20,'\n');
+		//cout<<item[i]<<endl;
+		if(list[i].eof())
+			count++;
+	}
+	cout<< "the names after merging using k-way merge algorithm\n";
+	while(count<k)
+	{
+		strcpy(min,"") ;
+		for(i=0;i<k;i++)
+			if(!list[i].eof())
+			{
+				strcpy(min,item[i]) ;
+				break;
+			}
+		count=0;
+		for(i=0;i<k;i++)
+		{
+			if(list[i].eof())
+				count++;
+			else if(strcmp(item[i],min)<0)
+				strcpy(min,item[i]);
+		}
+		if(count==8)
+			break;
+		outfile<<min<<"\n";
+		cout<<min<<"\n";
+		for(i=0;i<k;i++)
+			if(strcmp(item[i],min)==0)
+				list[i].getline(item[i],20,'\n');
+	}
+	for(i=0;i<8;i++)
+		list[i].close();
+	return 0;
+}
